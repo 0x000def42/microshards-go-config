@@ -33,6 +33,11 @@ func (service UserService) GetList() ([]models.User, error) {
 	return users, nil
 }
 
+type CreateUserParams struct {
+	Username string
+	Role     models.UserRole
+}
+
 func (service UserService) Create(params CreateUserParams) (*models.User, error) {
 	user := service.repo.NewUser()
 
@@ -47,6 +52,11 @@ func (service UserService) Create(params CreateUserParams) (*models.User, error)
 
 	return &user, nil
 
+}
+
+type UpdateUserParams struct {
+	Username *string
+	Role     *models.UserRole
 }
 
 func (service UserService) Update(id string, params UpdateUserParams) (*models.User, error) {
