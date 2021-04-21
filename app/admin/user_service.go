@@ -50,7 +50,7 @@ func (service UserService) Create(params CreateUserParams) (*models.User, error)
 		return nil, err
 	}
 
-	return &user, nil
+	return user, nil
 
 }
 
@@ -79,7 +79,7 @@ func (service UserService) Update(id string, params UpdateUserParams) (*models.U
 		return nil, err
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func (service UserService) GetOne(id string) (*models.User, error) {
@@ -89,7 +89,7 @@ func (service UserService) GetOne(id string) (*models.User, error) {
 		return nil, err
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func (service UserService) Delete(id string) error {
