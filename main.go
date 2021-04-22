@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/0x000def42/microshards-go-config/app/admin"
-	"github.com/0x000def42/microshards-go-config/event_store"
 	"github.com/0x000def42/microshards-go-config/factories"
 	"github.com/0x000def42/microshards-go-config/repositories"
 	"github.com/0x000def42/microshards-go-config/request_handlers"
@@ -34,9 +33,7 @@ func main() {
 
 	userRepository := repositories.NewUserRepositorySqlite(sqliteClient)
 
-	userEventStore := event_store.NewUserEventStoreNats()
-
-	adminUserService := admin.NewUserService(userRepository, userEventStore)
+	adminUserService := admin.NewUserService(userRepository)
 
 	adminModule := admin.NewModule(adminUserService)
 

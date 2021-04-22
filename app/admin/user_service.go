@@ -3,7 +3,6 @@ package admin
 import (
 	"fmt"
 
-	"github.com/0x000def42/microshards-go-config/event_store"
 	"github.com/0x000def42/microshards-go-config/models"
 	"github.com/0x000def42/microshards-go-config/repositories"
 )
@@ -17,14 +16,12 @@ type IUserService interface {
 }
 
 type UserService struct {
-	repo        repositories.UserRepository
-	event_store event_store.UserEventStore
+	repo repositories.UserRepository
 }
 
-func NewUserService(repo repositories.UserRepository, event_store event_store.UserEventStore) IUserService {
+func NewUserService(repo repositories.UserRepository) IUserService {
 	return UserService{
-		repo:        repo,
-		event_store: event_store,
+		repo: repo,
 	}
 }
 
