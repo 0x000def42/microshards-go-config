@@ -69,11 +69,10 @@ func (repo UserRepositorySqlite) Create(user *models.User) (*models.User, error)
 
 	insertSqlStr := `insert into users 
 	(id, username, password, reset_token, role, created_at) 
-	values ($1, $2, $3, $4, $5, $6)`
+	values (?, ?, ?, ?, ?, ?)`
 
 	_, err := repo.db.Exec(insertSqlStr,
 		user.Id, user.Username, user.Password, user.ResetToken, user.Role, user.CreatedAt)
-
 	if err != nil {
 		return nil, err
 	}
@@ -88,17 +87,17 @@ func (repo UserRepositorySqlite) Update(user *models.User) (*models.User, error)
 	user.UpdatedAt = &updatedAt
 
 	updateSqlStr := `update users set
-		username = $2, password = $3, reset_token = $4, role = $5, updated_at = $6
-		where id = $1
+		username = ?, password = ?, reset_token = ?, role = ?, updated_at = ?
+		where id = ?
 	`
 
 	_, err := repo.db.Exec(updateSqlStr,
-		user.Id,
 		user.Username,
 		user.Password,
 		user.ResetToken,
 		user.Role,
-		user.UpdatedAt)
+		user.UpdatedAt,
+		&user.Id)
 
 	if err != nil {
 		return nil, err
@@ -110,9 +109,9 @@ func (repo UserRepositorySqlite) Update(user *models.User) (*models.User, error)
 func (repo UserRepositorySqlite) Delete(user *models.User) error {
 	deletedAt := time.Now()
 	user.DeletedAt = &deletedAt
-	_, err := repo.db.Exec("updates users set deleted_at = $2 where id = $1",
-		user.Id,
-		user.DeletedAt)
+	_, err := repo.db.Exec("updates users set deleted_at = ? where id = ?",
+		user.DeletedAt,
+		user.Id)
 
 	if err != nil {
 		return err

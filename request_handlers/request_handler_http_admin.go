@@ -30,6 +30,7 @@ func (handler RequestHandlerHttpAdmin) Routes(router *mux.Router) {
 	admin.HandleFunc("/users", handler.adminIndexUser).Methods("GET")
 	admin.HandleFunc("/users", handler.adminCreateUser).Methods("POST")
 	admin.HandleFunc(userPath, handler.adminShowUser).Methods("GET")
+	admin.HandleFunc(userPath, handler.adminUpdateUser).Methods("PATCH")
 }
 
 func (handler RequestHandlerHttpAdmin) AdminMiddleware(next http.Handler) http.Handler {
@@ -165,6 +166,66 @@ func (handler RequestHandlerHttpAdmin) adminShowUser(rw http.ResponseWriter, r *
 		ResetToken: *user.ResetToken,
 		CreatedAt:  *user.CreatedAt,
 		UpdatedAt:  user.UpdatedAt,
+	}
+
+	err = utils.ToJSON(response, rw)
+
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		utils.ToJSON(&utils.GenericError{Message: err.Error()}, rw)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+}
+
+type AdminUpdateUserParams struct {
+	Username *string          `json:"username"`
+	Role     *models.UserRole `json:"role"`
+}
+
+type AdminUpdateUserResponse struct {
+	Id       string          `json:"id"`
+	Username string          `json:"username"`
+	Role     models.UserRole `json:"role"`
+}
+
+func (handler RequestHandlerHttpAdmin) adminUpdateUser(rw http.ResponseWriter, r *http.Request) {
+	id := getUserID(r)
+	params := &AdminUpdateUserParams{}
+	err := utils.FromJSON(params, r.Body)
+
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		utils.ToJSON(&utils.GenericError{Message: err.Error()}, rw)
+		return
+	}
+
+	actionParams := admin.UpdateUserParams{
+		Username: params.Username,
+		Role:     params.Role,
+	}
+
+	errs := utils.Validate(actionParams)
+
+	if len(errs) != 0 {
+		rw.WriteHeader(http.StatusUnprocessableEntity)
+		utils.ToJSON(&utils.ValidationErrorMessages{Messages: errs.Errors()}, rw)
+		return
+	}
+
+	user, err := handler.module.UserService.Update(id, actionParams)
+
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		utils.ToJSON(&utils.GenericError{Message: err.Error()}, rw)
+		return
+	}
+
+	response := AdminUpdateUserResponse{
+		Id:       *user.Id,
+		Username: *user.Username,
+		Role:     *user.Role,
 	}
 
 	err = utils.ToJSON(response, rw)

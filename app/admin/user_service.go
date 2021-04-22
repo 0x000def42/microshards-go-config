@@ -60,8 +60,8 @@ func (service UserService) Create(params CreateUserParams) (*models.User, error)
 }
 
 type UpdateUserParams struct {
-	Username *string
-	Role     *models.UserRole
+	Username *string          `validate:"omitempty,eq=nil|gt=6"`
+	Role     *models.UserRole `validate:"omitempty,user_role"`
 }
 
 func (service UserService) Update(id string, params UpdateUserParams) (*models.User, error) {
