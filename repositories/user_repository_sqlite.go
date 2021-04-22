@@ -51,7 +51,7 @@ func (repo UserRepositorySqlite) GetAll() ([]models.User, error) {
 }
 
 func (repo UserRepositorySqlite) GetOne(id string) (*models.User, error) {
-	getSqlStr := "select * from users where id = $1 and where deleted_at is null"
+	getSqlStr := "select * from users where id = $1 and deleted_at is null"
 	row := repo.db.QueryRow(getSqlStr, id)
 	user, err := scanUser(row)
 	if err != nil {

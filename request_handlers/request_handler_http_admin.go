@@ -3,6 +3,7 @@ package request_handlers
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/0x000def42/microshards-go-config/app/admin"
 	"github.com/0x000def42/microshards-go-config/models"
@@ -24,12 +25,16 @@ func (handler RequestHandlerHttpAdmin) Routes(router *mux.Router) {
 	admin := router.PathPrefix("/admin/").Subrouter()
 	admin.Use(handler.AdminMiddleware)
 
+	id := "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+	userPath := fmt.Sprintf("/users/{id:%s}", id)
 	admin.HandleFunc("/users", handler.adminIndexUser).Methods("GET")
 	admin.HandleFunc("/users", handler.adminCreateUser).Methods("POST")
+	admin.HandleFunc(userPath, handler.adminShowUser).Methods("GET")
 }
 
 func (handler RequestHandlerHttpAdmin) AdminMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Add("Content-Type", "application/json")
 		next.ServeHTTP(rw, r)
 	})
 }
@@ -131,4 +136,50 @@ func (handler RequestHandlerHttpAdmin) adminCreateUser(rw http.ResponseWriter, r
 
 	rw.WriteHeader(http.StatusOK)
 
+}
+
+type AdminShowUserResponse struct {
+	Id         string          `json:"id"`
+	Username   string          `json:"username"`
+	Role       models.UserRole `json:"role"`
+	ResetToken string          `json:"reset_token"`
+	CreatedAt  time.Time       `json:"created_at"`
+	UpdatedAt  *time.Time      `json:"updated_at"`
+}
+
+func (handler RequestHandlerHttpAdmin) adminShowUser(rw http.ResponseWriter, r *http.Request) {
+	id := getUserID(r)
+
+	user, err := handler.module.UserService.GetOne(id)
+
+	if err != nil {
+		rw.WriteHeader(http.StatusNotFound)
+		utils.ToJSON(&utils.GenericError{Message: "Not found"}, rw)
+		return
+	}
+
+	response := AdminShowUserResponse{
+		Id:         *user.Id,
+		Username:   *user.Username,
+		Role:       *user.Role,
+		ResetToken: *user.ResetToken,
+		CreatedAt:  *user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+	}
+
+	err = utils.ToJSON(response, rw)
+
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		utils.ToJSON(&utils.GenericError{Message: err.Error()}, rw)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+}
+
+func getUserID(r *http.Request) string {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	return id
 }
