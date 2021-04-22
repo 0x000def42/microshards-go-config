@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/0x000def42/microshards-go-config/models"
@@ -34,6 +35,7 @@ func (repo UserRepositorySqlite) NewUser() *models.User {
 func (repo UserRepositorySqlite) GetAll() ([]models.User, error) {
 	rows, err := repo.db.Query("select * from users where deleted_at is null")
 	if err != nil {
+		fmt.Println("[ERROR] UserRepositroy.GetAll: db.query", err)
 		return nil, err
 	}
 	users := []models.User{}
@@ -124,7 +126,14 @@ type ScanableRow interface {
 
 func scanUser(row ScanableRow) (*models.User, error) {
 	user := models.User{}
-	err := row.Scan(&user.Id)
+	err := row.Scan(&user.Id,
+		&user.Username,
+		&user.Password,
+		&user.ResetToken,
+		&user.Role,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.DeletedAt)
 	if err != nil {
 		return nil, err
 	}

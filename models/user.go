@@ -13,11 +13,11 @@ type User struct {
 	DeletedAt  *time.Time
 }
 
-type UserRole int
+type UserRole string
 
 // Define consts for value of RoleType field
 const (
-	USER_ROLE_GUEST UserRole = 1
-	USER_ROLE_USER  UserRole = 2
-	USER_ROLE_ADMIN UserRole = 3
+	USER_ROLE_GUEST UserRole = "guest"
+	USER_ROLE_USER  UserRole = "user"
+	USER_ROLE_ADMIN UserRole = "admin"
 )

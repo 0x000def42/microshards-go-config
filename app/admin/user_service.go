@@ -1,8 +1,11 @@
 package admin
 
 import (
+	"fmt"
+
+	"github.com/0x000def42/microshards-go-config/event_store"
 	"github.com/0x000def42/microshards-go-config/models"
-	repositories "github.com/0x000def42/microshards-go-config/reposittories"
+	"github.com/0x000def42/microshards-go-config/repositories"
 )
 
 type IUserService interface {
@@ -14,12 +17,14 @@ type IUserService interface {
 }
 
 type UserService struct {
-	repo repositories.UserRepository
+	repo        repositories.UserRepository
+	event_store event_store.UserEventStore
 }
 
-func NewUserService(repo repositories.UserRepository) IUserService {
+func NewUserService(repo repositories.UserRepository, event_store event_store.UserEventStore) IUserService {
 	return UserService{
-		repo: repo,
+		repo:        repo,
+		event_store: event_store,
 	}
 }
 
@@ -27,6 +32,7 @@ func (service UserService) GetList() ([]models.User, error) {
 	users, err := service.repo.GetAll()
 
 	if err != nil {
+		fmt.Println("[ERROR] admin.UserService repo.GetAll", err)
 		return nil, err
 	}
 
@@ -34,8 +40,8 @@ func (service UserService) GetList() ([]models.User, error) {
 }
 
 type CreateUserParams struct {
-	Username string
-	Role     models.UserRole
+	Username string          `validate:"required"`
+	Role     models.UserRole `validate:"required,user_role"`
 }
 
 func (service UserService) Create(params CreateUserParams) (*models.User, error) {
@@ -49,6 +55,8 @@ func (service UserService) Create(params CreateUserParams) (*models.User, error)
 	if err != nil {
 		return nil, err
 	}
+
+	// service.event_store.PublishUserCreated()
 
 	return user, nil
 
