@@ -27,10 +27,12 @@ func (handler RequestHandlerHttpAdmin) Routes(router *mux.Router) {
 
 	id := "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 	userPath := fmt.Sprintf("/users/{id:%s}", id)
-	admin.HandleFunc("/users", handler.adminIndexUser).Methods("GET")
-	admin.HandleFunc("/users", handler.adminCreateUser).Methods("POST")
-	admin.HandleFunc(userPath, handler.adminShowUser).Methods("GET")
-	admin.HandleFunc(userPath, handler.adminUpdateUser).Methods("PATCH")
+	admin.HandleFunc("/users", handler.adminIndexUser).Methods(http.MethodGet)
+	admin.HandleFunc("/users", handler.adminCreateUser).Methods(http.MethodPatch)
+	admin.HandleFunc(userPath, handler.adminShowUser).Methods(http.MethodGet)
+	admin.HandleFunc(userPath, handler.adminUpdateUser).Methods(http.MethodPatch)
+	admin.HandleFunc(userPath, handler.adminUpdateUser).Methods(http.MethodPut)
+	admin.HandleFunc(userPath, handler.adminDeleteUser).Methods(http.MethodDelete)
 }
 
 func (handler RequestHandlerHttpAdmin) AdminMiddleware(next http.Handler) http.Handler {
@@ -237,6 +239,20 @@ func (handler RequestHandlerHttpAdmin) adminUpdateUser(rw http.ResponseWriter, r
 	}
 
 	rw.WriteHeader(http.StatusOK)
+}
+
+func (handler RequestHandlerHttpAdmin) adminDeleteUser(rw http.ResponseWriter, r *http.Request) {
+	id := getUserID(r)
+
+	err := handler.module.UserService.Delete(id)
+
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		utils.ToJSON(&utils.GenericError{Message: err.Error()}, rw)
+		return
+	}
+
+	rw.WriteHeader(http.StatusNoContent)
 }
 
 func getUserID(r *http.Request) string {
