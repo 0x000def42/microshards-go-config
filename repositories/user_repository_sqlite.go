@@ -109,7 +109,7 @@ func (repo UserRepositorySqlite) Update(user *models.User) (*models.User, error)
 func (repo UserRepositorySqlite) Delete(user *models.User) error {
 	deletedAt := time.Now()
 	user.DeletedAt = &deletedAt
-	_, err := repo.db.Exec("updates users set deleted_at = ? where id = ?",
+	_, err := repo.db.Exec("update users set deleted_at = ? where id = ?",
 		user.DeletedAt,
 		user.Id)
 
