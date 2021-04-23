@@ -7,11 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/0x000def42/microshards-go-config/request_handlers"
+	"github.com/0x000def42/microshards-go-config/controllers"
 	"github.com/gorilla/mux"
 )
 
-func NewHttpServer(handlers []request_handlers.RequestHandlerHttp) *http.Server {
+func NewHttpServer(handlers []controllers.ControllerHttp) *http.Server {
 	router := mux.NewRouter()
 
 	for _, handler := range handlers {

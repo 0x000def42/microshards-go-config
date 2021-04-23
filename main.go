@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/0x000def42/microshards-go-config/app/admin"
+	"github.com/0x000def42/microshards-go-config/controllers"
 	"github.com/0x000def42/microshards-go-config/factories"
 	"github.com/0x000def42/microshards-go-config/repositories"
-	"github.com/0x000def42/microshards-go-config/request_handlers"
 	"github.com/joho/godotenv"
 	"github.com/qiangxue/go-env"
 )
@@ -37,10 +37,10 @@ func main() {
 
 	adminModule := admin.NewModule(adminUserService)
 
-	requestHandlersHttp := []request_handlers.RequestHandlerHttp{}
-	requestHandlersHttp = append(requestHandlersHttp, request_handlers.NewRequestHandlerHttpAdmin(adminModule))
+	controllersHttp := []controllers.ControllerHttp{}
+	controllersHttp = append(controllersHttp, controllers.NewControllerHttpAdmin(adminModule))
 
-	httpServer := factories.NewHttpServer(requestHandlersHttp)
+	httpServer := factories.NewHttpServer(controllersHttp)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

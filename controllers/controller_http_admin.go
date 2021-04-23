@@ -13,7 +13,7 @@ type ControllerHttpAdmin struct {
 	User   ControllerHttpAdminUser
 }
 
-func NewRequestHandlerHttpAdmin(adminModule admin.Module) ControllerHttp {
+func NewControllerHttpAdmin(adminModule admin.Module) ControllerHttp {
 	return &ControllerHttpAdmin{
 		module: adminModule,
 		User:   ControllerHttpAdminUser{module: adminModule},
