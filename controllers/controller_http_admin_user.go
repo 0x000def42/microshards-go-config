@@ -1,4 +1,4 @@
-package request_handlers
+package controllers
 
 import (
 	"fmt"
@@ -11,35 +11,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type RequestHandlerHttpAdmin struct {
+type ControllerHttpAdminUser struct {
 	module admin.Module
-}
-
-func NewRequestHandlerHttpAdmin(adminModule admin.Module) RequestHandlerHttp {
-	return &RequestHandlerHttpAdmin{
-		module: adminModule,
-	}
-}
-
-func (handler RequestHandlerHttpAdmin) Routes(router *mux.Router) {
-	admin := router.PathPrefix("/admin/").Subrouter()
-	admin.Use(handler.AdminMiddleware)
-
-	id := "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-	userPath := fmt.Sprintf("/users/{id:%s}", id)
-	admin.HandleFunc("/users", handler.adminIndexUser).Methods(http.MethodGet)
-	admin.HandleFunc("/users", handler.adminCreateUser).Methods(http.MethodPatch)
-	admin.HandleFunc(userPath, handler.adminShowUser).Methods(http.MethodGet)
-	admin.HandleFunc(userPath, handler.adminUpdateUser).Methods(http.MethodPatch)
-	admin.HandleFunc(userPath, handler.adminUpdateUser).Methods(http.MethodPut)
-	admin.HandleFunc(userPath, handler.adminDeleteUser).Methods(http.MethodDelete)
-}
-
-func (handler RequestHandlerHttpAdmin) AdminMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		rw.Header().Add("Content-Type", "application/json")
-		next.ServeHTTP(rw, r)
-	})
 }
 
 type AdminIndexUserResponse []AdminIndexUserResponsePart
@@ -50,8 +23,8 @@ type AdminIndexUserResponsePart struct {
 	Role     models.UserRole `json:"role"`
 }
 
-func (handler RequestHandlerHttpAdmin) adminIndexUser(rw http.ResponseWriter, r *http.Request) {
-	users, err := handler.module.UserService.GetList()
+func (controller ControllerHttpAdminUser) Index(rw http.ResponseWriter, r *http.Request) {
+	users, err := controller.module.UserService.GetList()
 
 	if err != nil {
 		fmt.Println("[ERROR] GET /admin/users", err)
@@ -91,7 +64,7 @@ type AdminCreateUserResponse struct {
 	Role     models.UserRole `json:"role"`
 }
 
-func (handler RequestHandlerHttpAdmin) adminCreateUser(rw http.ResponseWriter, r *http.Request) {
+func (controller ControllerHttpAdminUser) Create(rw http.ResponseWriter, r *http.Request) {
 
 	params := &AdminCreateUserParams{}
 	err := utils.FromJSON(params, r.Body)
@@ -115,7 +88,7 @@ func (handler RequestHandlerHttpAdmin) adminCreateUser(rw http.ResponseWriter, r
 		return
 	}
 
-	user, err := handler.module.UserService.Create(actionParams)
+	user, err := controller.module.UserService.Create(actionParams)
 
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -150,10 +123,10 @@ type AdminShowUserResponse struct {
 	UpdatedAt  *time.Time      `json:"updated_at"`
 }
 
-func (handler RequestHandlerHttpAdmin) adminShowUser(rw http.ResponseWriter, r *http.Request) {
+func (controller ControllerHttpAdminUser) Show(rw http.ResponseWriter, r *http.Request) {
 	id := getUserID(r)
 
-	user, err := handler.module.UserService.GetOne(id)
+	user, err := controller.module.UserService.GetOne(id)
 
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
@@ -192,7 +165,7 @@ type AdminUpdateUserResponse struct {
 	Role     models.UserRole `json:"role"`
 }
 
-func (handler RequestHandlerHttpAdmin) adminUpdateUser(rw http.ResponseWriter, r *http.Request) {
+func (controller ControllerHttpAdminUser) Update(rw http.ResponseWriter, r *http.Request) {
 	id := getUserID(r)
 	params := &AdminUpdateUserParams{}
 	err := utils.FromJSON(params, r.Body)
@@ -216,7 +189,7 @@ func (handler RequestHandlerHttpAdmin) adminUpdateUser(rw http.ResponseWriter, r
 		return
 	}
 
-	user, err := handler.module.UserService.Update(id, actionParams)
+	user, err := controller.module.UserService.Update(id, actionParams)
 
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -241,10 +214,10 @@ func (handler RequestHandlerHttpAdmin) adminUpdateUser(rw http.ResponseWriter, r
 	rw.WriteHeader(http.StatusOK)
 }
 
-func (handler RequestHandlerHttpAdmin) adminDeleteUser(rw http.ResponseWriter, r *http.Request) {
+func (controller ControllerHttpAdminUser) Delete(rw http.ResponseWriter, r *http.Request) {
 	id := getUserID(r)
 
-	err := handler.module.UserService.Delete(id)
+	err := controller.module.UserService.Delete(id)
 
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
